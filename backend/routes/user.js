@@ -71,6 +71,9 @@ router.post("/signin", async (req, res) => {
             },
             JWT_SECRET
         );
+        res.json({
+            token: token,
+        });
         return;
     }
     res.status(411).json({
