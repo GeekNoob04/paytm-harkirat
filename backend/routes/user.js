@@ -12,7 +12,7 @@ const bodySchema = zod.object({
     password: zod.string(),
     firstName: zod.string(),
     lastName: zod.string(),
-}); 
+});
 
 router.post("/signup", async (req, res) => {
     const body = req.body;
@@ -30,7 +30,7 @@ router.post("/signup", async (req, res) => {
             msg: "Email already taken / incorrect inputs",
         });
     }
-    const user = User.create({
+    const user = await User.create({
         username: req.body.username,
         password: req.body.password,
         firstName: req.body.firstName,
@@ -48,5 +48,8 @@ router.post("/signup", async (req, res) => {
         token: token,
     });
 });
+app.put("",(req,res)=>{
+    
+})
 
 module.exports = router;
