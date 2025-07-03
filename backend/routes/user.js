@@ -49,6 +49,34 @@ router.post("/signup", async (req, res) => {
         token: token,
     });
 });
+const signInBody = zod.object({
+    username: zod.string().email(),
+    password: zod.string(),
+});
+router.post("/signin", async (req, res) => {
+    const { success } = signInBody.safeParse(req.body);
+    if (!success) {
+        return res.status(411).json({
+            msg: "Email already taken / incorrect inputs",
+        });
+    }
+    const user = await User.findOne({
+        username: req.body.username,
+        password: req.body.password,
+    });
+    if (user) {
+        const token = jwt.sign(
+            {
+                userId: user._id,
+            },
+            JWT_SECRET
+        );
+        return;
+    }
+    res.status(411).json({
+        msg: "Error while logging in",
+    });
+});
 const updateBody = zod.object({
     password: zod.string().optional(),
     firstName: zod.string().optional(),
