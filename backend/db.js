@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const express = require("express");
+const { string, number } = require("zod");
 const app = express();
 
 app.use(express.json());
@@ -34,7 +35,20 @@ const UserSchema = new mongoose.Schema({
         maxLength: 50,
     },
 });
+const AccountSchema = new mongoose.Schema({
+    userId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User", // user ke bina account mai kuch nhi dalega
+        required: true,
+    },
+    balance: {
+        type: Number,
+        required: true,
+    },
+});
+const Account = mongoose.model("Account", AccountSchema);
 const User = mongoose.model("User", UserSchema);
 module.exports = {
     User,
+    Account,
 };
