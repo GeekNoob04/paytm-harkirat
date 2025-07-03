@@ -7,7 +7,7 @@ mongoose.connect(
     "mongodb+srv://harshitbudhraja0:MongoKaPass@cluster0.nruhe7l.mongodb.net/"
 );
 const UserSchema = new mongoose.Schema({
-    usernmae: {
+    username: {
         type: String,
         required: true,
         unique: true,
