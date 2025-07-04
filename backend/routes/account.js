@@ -1,0 +1,55 @@
+const express = require("express");
+const router = express.Router();
+const { authMiddleware } = require("../middlewares/middleware");
+const { Account } = require("../db");
+const { default: mongoose } = require("mongoose");
+
+router.get("/balance", authMiddleware, async (req, res) => {
+    const account = Account.findOne({
+        userId: req.userId,
+    });
+    res.json({
+        balance: account.balance,
+    });
+});
+router.post("/transfer", authMiddleware, async (req, res) => {
+    const session = mongoose.startSession();
+    session.startTransaction();
+    const { amount, to } = req.body;
+    const account = Account.findOne({
+        userId: req.userId,
+    }).session(session);
+    if (!account || account.balance < amount) {
+        await session.abortTransaction();
+        return res.status(400).json({
+            msg: "Invalid account",
+        });
+    }
+    // ab  hogi transactions
+    await Account.updateOne(
+        {
+            userId: req.userId,
+        },
+        {
+            $inc: {
+                balance: -amount,              
+            },
+        }
+    ).session(session);
+    await Account.updateOne(
+        {
+            userId: to,
+        },
+        {
+            $inc: {
+                balance: amount,
+            },
+        }
+    ).session(session);
+
+    await session.commitTransaction();
+    res.json({
+        msg: "transaction successful",
+    });
+});
+module.exports = router;
