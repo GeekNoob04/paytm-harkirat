@@ -5,7 +5,7 @@ const { Account } = require("../db");
 const { default: mongoose } = require("mongoose");
 
 router.get("/balance", authMiddleware, async (req, res) => {
-    const account = Account.findOne({
+    const account = await Account.findOne({
         userId: req.userId,
     });
     res.json({
@@ -13,10 +13,10 @@ router.get("/balance", authMiddleware, async (req, res) => {
     });
 });
 router.post("/transfer", authMiddleware, async (req, res) => {
-    const session = mongoose.startSession();
+    const session = await mongoose.startSession();
     session.startTransaction();
     const { amount, to } = req.body;
-    const account = Account.findOne({
+    const account = await Account.findOne({
         userId: req.userId,
     }).session(session);
     if (!account || account.balance < amount) {
@@ -32,7 +32,7 @@ router.post("/transfer", authMiddleware, async (req, res) => {
         },
         {
             $inc: {
-                balance: -amount,              
+                balance: -amount,
             },
         }
     ).session(session);
