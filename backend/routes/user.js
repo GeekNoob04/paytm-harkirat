@@ -156,6 +156,7 @@ router.post("/signup", async (req, res) => {
     }
     const userExist = await User.findOne({
         username: req.body.username,
+        password: req.body.password,
     });
     if (userExist) {
         res.status(411).json({
@@ -178,5 +179,38 @@ router.post("/signup", async (req, res) => {
     res.json({
         msg: "Sign up successfull",
         token: token,
+    });
+});
+
+const signinSchema = zod.object({
+    username: zod.string().email(),
+    password: zod.string(),
+});
+
+router.post("/signin", async (req, res) => {
+    const { success } = signinSchema.safeParse(req.body);
+    if (!success) {
+        res.status(411).json({
+            msg: "acoount does not exist",
+        });
+    }
+    const user = User.findOne({
+        username: req.body.username,
+        password: req.body.password,
+    });
+    if (user) {
+        const token = jwt.sign(
+            {
+                userId: user._id,
+            },
+            JWT_SECRET
+        );
+        req.json({
+            token,
+        });
+        return;
+    }
+    res.status(403).json({
+        msg: "error while logging in",
     });
 });
