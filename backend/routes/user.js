@@ -137,6 +137,7 @@ const jwt = require("jsonwebtoken");
 const zod = require("zod");
 const { User } = require("../db");
 const JWT_SECRET = require("../config");
+const { authMiddleware } = require("../middlewares/middleware");
 const app = express();
 const router = express.Router();
 app.use(express.json());
@@ -214,3 +215,49 @@ router.post("/signin", async (req, res) => {
         msg: "error while logging in",
     });
 });
+
+const updateBody = zod.object({
+    username: zod.string().email(),
+    firstName: zod.string(),
+    lastName: zod.string(),
+});
+
+router.put("/", authMiddleware, async (req, res) => {
+    const { success } = updateBody.safeParse(req.body);
+    if (!success) {
+        res.status(411).json({
+            msg: "error while updating info",
+        });
+    }
+    await User.updateOne({ _id: req.userId }, req.body); //Update the user whose _id is req.userId with the new values in req.body
+    res.json({
+        msg: "updated successfuly",
+    });
+});
+router.get("/bulk", async (req, res) => {
+    // NAHI AAYA SAMAJH
+    const filter = req.query.filter || "";
+    const users = await User.find({
+        $or: [
+            {
+                firstName: {
+                    $regex: filter,
+                },
+            },
+            {
+                lastName: {
+                    $regex: filter,
+                },
+            },
+        ],
+    });
+    res.json({
+        user: users.map((user) => ({
+            username: user.username,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            _id: user._id,
+        })),
+    });
+});
+module.exports = router;
