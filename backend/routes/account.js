@@ -1,53 +1,109 @@
+// const express = require("express");
+// const router = express.Router();
+// const { authMiddleware } = require("../middlewares/middleware");
+// const { Account } = require("../db");
+// const { default: mongoose } = require("mongoose");
+
+// router.get("/balance", authMiddleware, async (req, res) => {
+//     const account = await Account.findOne({
+//         userId: req.userId,
+//     });
+//     res.json({
+//         balance: account.balance,
+//     });
+// });
+// router.post("/transfer", authMiddleware, async (req, res) => {
+//     try {
+//         const session = await mongoose.startSession();
+//         session.startTransaction();
+//         const { amount, to } = req.body;
+//         const account = await Account.findOne({
+//             userId: req.userId,
+//         }).session(session);
+//         if (!account || account.balance < amount) {
+//             await session.abortTransaction();
+//             return res.status(400).json({
+//                 msg: "Invalid account",
+//             });
+//         }
+//         // ab  hogi transactions
+//         await Account.updateOne(
+//             {
+//                 userId: req.userId,
+//             },
+//             {
+//                 $inc: {
+//                     balance: -amount,
+//                 },
+//             }
+//         ).session(session);
+//         await Account.updateOne(
+//             {
+//                 userId: to,
+//             },
+//             {
+//                 $inc: {
+//                     balance: amount,
+//                 },
+//             }
+//         ).session(session);
+
+//         await session.commitTransaction();
+//         res.json({
+//             msg: "transaction successful",
+//         });
+//     } catch (e) {
+//         res.status(411).json({
+//             msg: "an error occured",
+//         });
+//     }
+// });
+// module.exports = router;
+
 const express = require("express");
-const router = express.Router();
 const { authMiddleware } = require("../middlewares/middleware");
 const { Account } = require("../db");
 const { default: mongoose } = require("mongoose");
+const app = express();
+const router = express.Router();
+app.use(express.json());
 
 router.get("/balance", authMiddleware, async (req, res) => {
     const account = await Account.findOne({
         userId: req.userId,
     });
-    res.json({
-        balance: account.balance,
-    });
+    if (account) {
+        res.json({
+            balance: account.balance,
+        });
+    }
 });
+
 router.post("/transfer", authMiddleware, async (req, res) => {
     try {
         const session = await mongoose.startSession();
         session.startTransaction();
         const { amount, to } = req.body;
-        const account = await Account.findOne({
+        const account = Account.findOne({
             userId: req.userId,
         }).session(session);
         if (!account || account.balance < amount) {
             await session.abortTransaction();
-            return res.status(400).json({
-                msg: "Invalid account",
-            });
+            return;
         }
-        // ab  hogi transactions
+        const toAcc = await Account.findOne({ userId: to }).session(session);
+        if (!toAcc) {
+            await session.abortTransaction();
+            return;
+        }
         await Account.updateOne(
-            {
-                userId: req.userId,
-            },
-            {
-                $inc: {
-                    balance: -amount,
-                },
-            }
+            { userId: req.userId },
+            { $inc: { balance: -amount } }
         ).session(session);
         await Account.updateOne(
-            {
-                userId: to,
-            },
-            {
-                $inc: {
-                    balance: amount,
-                },
-            }
+            { userId: to },
+            { $inc: { balance: amount } }
         ).session(session);
-
         await session.commitTransaction();
         res.json({
             msg: "transaction successful",
@@ -58,4 +114,5 @@ router.post("/transfer", authMiddleware, async (req, res) => {
         });
     }
 });
+
 module.exports = router;
