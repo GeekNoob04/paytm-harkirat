@@ -1,14 +1,14 @@
-// const express = require("express");
-// const app = express();
-// const cors = require("cors");
-// app.use(cors());
-// app.use(express.json());
+const express = require("express");
+const app = express();
+const cors = require("cors");
+app.use(cors());
+app.use(express.json());
 
-// const mainRouter = require("./routes/index");
+const mainRouter = require("./routes/index");
 
-// app.use("/api/v1", mainRouter);
-// app.listen(3000);
-
+app.use("/api/v1", mainRouter);
+app.listen(3000);
+/*
 const express = require("express");
 const app = express();
 const cors = require("cors");
@@ -17,3 +17,4 @@ app.use(cors);
 const mainRouter = require("./routes/index");
 app.use("/api/v1", mainRouter);
 app.listen(3000);
+*/
