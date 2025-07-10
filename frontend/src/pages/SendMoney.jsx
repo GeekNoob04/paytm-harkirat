@@ -1,12 +1,14 @@
 import axios from "axios";
 import { useState } from "react";
-import { useSearchParams } from "react-router";
+import { useNavigate, useSearchParams } from "react-router";
 
 export const SendMoney = () => {
     const [searchParams] = useSearchParams();
+    const [message, setMessage] = useState("");
     const [amount, setAmount] = useState(0);
     const id = searchParams.get("id");
     const name = searchParams.get("name");
+    const navigate = useNavigate();
     return (
         <div className="flex justify-center h-screen bg-gray-100">
             <div className="h-full flex flex-col justify-center">
@@ -42,28 +44,40 @@ export const SendMoney = () => {
                             </div>
                             <button
                                 onClick={async () => {
-                                    const res = await axios.post(
-                                        "http://localhost:3000/api/v1/account/transfer",
-                                        {
-                                            to: id,
-                                            amount,
-                                        },
-                                        {
-                                            headers: {
-                                                Authorization:
-                                                    "Bearer " +
-                                                    localStorage.getItem(
-                                                        "token",
-                                                        res.data.token
-                                                    ),
+                                    try {
+                                        await axios.post(
+                                            "http://localhost:3000/api/v1/account/transfer",
+                                            {
+                                                to: id,
+                                                amount,
                                             },
-                                        }
-                                    );
+                                            {
+                                                headers: {
+                                                    Authorization:
+                                                        "Bearer " +
+                                                        localStorage.getItem(
+                                                            "token"
+                                                        ),
+                                                },
+                                            }
+                                        );
+                                        setMessage(
+                                            "✅ Money sent successfully"
+                                        );
+                                        navigate("/dashboard");
+                                    } catch (e) {
+                                        setMessage("❌ Failed to send money");
+                                    }
                                 }}
                                 className="justify-center rounded-md text-sm font-medium ring-offset-background transition-colors h-10 px-4 py-2 w-full bg-green-500 text-white"
                             >
                                 Send Money
                             </button>
+                            {message && (
+                                <div className="text-center text-sm mt-2">
+                                    {message}
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
