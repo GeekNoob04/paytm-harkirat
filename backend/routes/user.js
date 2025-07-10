@@ -105,6 +105,14 @@ router.put("/", authMiddleware, async (req, res) => {
         msg: "Updated Successfully",
     });
 });
+router.get("/me", authMiddleware, async (req, res) => {
+    const user = await User.findOne({ _id: req.userId });
+    res.json({
+        username: user.username,
+        firstName: user.firstName,
+        lastName: user.lastName,
+    });
+});
 router.get("/bulk", async (req, res) => {
     const filter = req.query.filter || "";
     const users = await User.find({
